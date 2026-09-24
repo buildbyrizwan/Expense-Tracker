@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 
 FILE_NAME = "expenses.csv"
+MONTHLY_BUDGET_LIMIT = 5000.0
+
 
 def initialize_file():
     if not os.path.exists(FILE_NAME):
@@ -10,12 +12,25 @@ def initialize_file():
             writer = csv.writer(file)
             writer.writerow(["Date", "Category", "Amount", "Description"])
 
+
 def add_expense(category, amount, description):
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
     with open(FILE_NAME, mode="a", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow([date, category, amount, description])
     print(f"Added: {description} (Rs. {amount}) under '{category}'")
+
+    # Budget threshold check
+    with open(FILE_NAME, mode="r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader, None)  # Skip header row
+        current_total = sum(float(r[2]) for r in reader)
+
+    if current_total > MONTHLY_BUDGET_LIMIT:
+        print(
+            f"⚠️  WARNING: You have exceeded the monthly budget limit of Rs. {MONTHLY_BUDGET_LIMIT:.2f}! Total spent: Rs. {current_total:.2f}"
+        )
+
 
 def view_expenses():
     if not os.path.exists(FILE_NAME):
@@ -42,6 +57,7 @@ def view_expenses():
         print("=" * 55)
         print(f"Total Expenditure: Rs. {total:.2f}\n")
 
+
 def main():
     initialize_file()
     while True:
@@ -67,6 +83,7 @@ def main():
             break
         else:
             print("Invalid selection. Try again.")
+
 
 if __name__ == "__main__":
     main()
